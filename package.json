@@ -20,7 +20,7 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && node scripts/build-pack.mjs",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.json && node scripts/build-pack.mjs",
     "pack:module": "tsx scripts/pack-module.ts",
     "prepack": "npm run build",
     "prepublishOnly": "npm run build"
@@ -43,12 +43,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meawmere/modular-discord.git"
+    "url": "git+https://github.com/lastangelcry/modular-discord.git"
   },
   "bugs": {
-    "url": "https://github.com/meawmere/modular-discord/issues"
+    "url": "https://github.com/lastangelcry/modular-discord/issues"
   },
-  "homepage": "https://github.com/meawmere/modular-discord#readme",
+  "homepage": "https://github.com/lastangelcry/modular-discord#readme",
   "dependencies": {
     "better-sqlite3": "^11.9.1",
     "discord.js": "^14.19.3",

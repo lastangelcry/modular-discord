@@ -1,6 +1,6 @@
 # modular-discord
 
-> **Пример бота:** см. папку [`example/`](./example/) — мини-бот со всеми возможностями библиотеки.
+> **Пример бота:** см. [`example/`](https://github.com/lastangelcry/modular-discord/tree/main/example) — мини-бот со всеми возможностями библиотеки.
 
 Ядро для модульного Discord-бота: загрузка модулей из папок и `.pak`-архивов, поддержка нескольких СУБД, slash-команды, lifecycle-хуки модулей.
 
@@ -140,6 +140,20 @@ npm run build
 
 ## Публикация
 
+1. Убедитесь, что вы залогинены: `npm whoami` (иначе `npm login`)
+2. Соберите и проверьте tarball:
+
 ```bash
-npm publish --otp=КОД
+npm run build
+npm pack --dry-run
 ```
+
+3. Опубликуйте (при включённой 2FA нужен OTP):
+
+```bash
+npm publish --access public
+# или с OTP:
+npm publish --access public --otp=КОД
+```
+
+На npm сейчас **1.0.1**, следующий релиз — **1.1.0** (мульти-БД, example, async API модулей).

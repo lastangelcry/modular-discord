@@ -1,4 +1,5 @@
 src/
 scripts/
+example/
 tsconfig.json
 .gitignore
