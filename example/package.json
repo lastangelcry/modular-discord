@@ -1,0 +1,19 @@
+{
+  "name": "modular-discord-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "pack:greeter": "modular-discord-pack pack/greeter && node scripts/move-pak.mjs",
+    "pack:all": "npm run pack:greeter"
+  },
+  "dependencies": {
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "modular-discord": "file:.."
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
