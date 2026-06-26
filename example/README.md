@@ -78,7 +78,7 @@ npm install mysql2    # mysql
 npm install mongodb   # mongodb
 ```
 
-> Модули `stats` и `vault` используют SQL. При MongoDB работают `storage`, `welcome`, `greeter` и ядро (`/settings`).
+> Модули `stats` и `vault` используют SQL. При MongoDB работают `storage`, `welcome`, `greeter` и встроенные команды библиотеки (`/settings`).
 
 ## Команды в Discord
 
