@@ -1,0 +1,53 @@
+{
+  "name": "modular-discord",
+  "version": "1.0.1",
+  "description": "Ядро модульного Discord-бота: загрузчик модулей, SQLite, формат .pak",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "modular-discord-pack": "dist/pack-module.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/build-pack.mjs",
+    "pack:module": "tsx scripts/pack-module.ts",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "discord",
+    "discord-bot",
+    "discord.js",
+    "modular",
+    "sqlite",
+    "bot-framework"
+  ],
+  "author": "lastangelcry",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.9.1",
+    "discord.js": "^14.19.3",
+    "esbuild": "^0.25.5",
+    "fflate": "^0.8.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  }
+}
