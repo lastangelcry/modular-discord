@@ -38,6 +38,14 @@
   ],
   "author": "lastangelcry",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/meawmere/modular-discord.git"
+  },
+  "bugs": {
+    "url": "https://github.com/meawmere/modular-discord/issues"
+  },
+  "homepage": "https://github.com/meawmere/modular-discord#readme",
   "dependencies": {
     "better-sqlite3": "^11.9.1",
     "discord.js": "^14.19.3",
