@@ -1,7 +1,7 @@
 {
   "name": "modular-discord",
-  "version": "1.0.1",
-  "description": "Ядро модульного Discord-бота: загрузчик модулей, SQLite, формат .pak",
+  "version": "1.1.0",
+  "description": "Ядро модульного Discord-бота: загрузчик модулей, мульти-БД (SQLite, PostgreSQL, MySQL, MongoDB), формат .pak",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -34,6 +34,9 @@
     "discord.js",
     "modular",
     "sqlite",
+    "postgres",
+    "mysql",
+    "mongodb",
     "bot-framework"
   ],
   "author": "lastangelcry",
@@ -55,7 +58,21 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.15.3",
+    "@types/pg": "^8.11.14",
+    "mongodb": "^6.16.0",
+    "mysql2": "^3.14.1",
+    "pg": "^8.16.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "pg": ">=8.0.0",
+    "mysql2": ">=3.0.0",
+    "mongodb": ">=6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "pg": { "optional": true },
+    "mysql2": { "optional": true },
+    "mongodb": { "optional": true }
   }
 }

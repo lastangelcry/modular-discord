@@ -1,6 +1,35 @@
 export { BotCore } from './BotCore.js';
 export { buildSlashCommand } from './commandBuilder.js';
-export { Database, ModuleDatabase } from './Database.js';
+export {
+  createDatabase,
+  resolveDatabaseConfig,
+  resolveDataPath,
+  SqliteDatabase,
+  PostgresDatabase,
+  MysqlDatabase,
+  MongodbDatabase,
+  PrefixedModuleDatabase,
+  PrefixedModuleDocumentStore,
+  isSqlStore,
+  isDocumentStore,
+} from './database/index.js';
+export type {
+  DatabaseClient,
+  DatabaseConfig,
+  DatabaseKind,
+  DocumentDatabaseClient,
+  ModuleDataStore,
+  ModuleDatabase,
+  ModuleDocumentStore,
+  MongodbDatabaseConfig,
+  MysqlDatabaseConfig,
+  PostgresDatabaseConfig,
+  RunResult,
+  SqlDatabaseClient,
+  SqlDialect,
+  SqliteDatabaseConfig,
+  CustomDatabaseConfig,
+} from './database/index.js';
 export { ModuleListeners } from './ModuleListeners.js';
 export type { ListenerOptions } from './ModuleListeners.js';
 export { discoverModules } from './ModuleLoader.js';
@@ -21,3 +50,6 @@ export type {
   ModuleMeta,
   ModuleRegistry,
 } from './types.js';
+
+// Backward-compatible alias for SQLite driver
+export { SqliteDatabase as Database } from './database/index.js';

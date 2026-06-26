@@ -1,6 +1,6 @@
 # modular-discord
 
-Ядро для модульного Discord-бота: загрузка модулей из папок и `.pak`-архивов, SQLite с префиксами таблиц, slash-команды, lifecycle-хуки модулей.
+Ядро для модульного Discord-бота: загрузка модулей из папок и `.pak`-архивов, поддержка нескольких СУБД, slash-команды, lifecycle-хуки модулей.
 
 ## Установка
 
@@ -8,7 +8,15 @@
 npm install modular-discord discord.js
 ```
 
-## Быстрый старт
+По умолчанию используется **SQLite** (встроен). Для других баз установите нужный драйвер:
+
+```bash
+npm install pg          # PostgreSQL
+npm install mysql2      # MySQL / MariaDB
+npm install mongodb     # MongoDB
+```
+
+## Быстрый старт (SQLite)
 
 ```ts
 import 'dotenv/config';
@@ -18,11 +26,92 @@ import { BotCore } from 'modular-discord';
 const bot = new BotCore({
   token: process.env.DISCORD_TOKEN!,
   clientId: process.env.DISCORD_CLIENT_ID!,
-  databasePath: join(process.cwd(), 'data', 'bot.sqlite'),
   modulesPath: join(process.cwd(), 'modules'),
+  database: { type: 'sqlite', path: join(process.cwd(), 'data', 'bot.sqlite') },
 });
 
 await bot.start();
+```
+
+`databasePath` по-прежнему поддерживается как сокращение для SQLite.
+
+## Выбор базы данных
+
+### PostgreSQL
+
+```ts
+const bot = new BotCore({
+  // ...
+  database: {
+    type: 'postgres',
+    url: process.env.DATABASE_URL!,
+  },
+});
+```
+
+### MySQL
+
+```ts
+const bot = new BotCore({
+  // ...
+  database: {
+    type: 'mysql',
+    host: 'localhost',
+    database: 'mybot',
+    user: 'root',
+    password: 'secret',
+  },
+});
+```
+
+### MongoDB
+
+Для MongoDB модули получают document-store API вместо SQL:
+
+```ts
+import { isDocumentStore } from 'modular-discord';
+
+const bot = new BotCore({
+  // ...
+  database: {
+    type: 'mongodb',
+    url: 'mongodb://localhost:27017',
+    database: 'mybot',
+  },
+});
+
+// В модуле:
+if (isDocumentStore(ctx.db)) {
+  await ctx.db.insertOne('users', { guild_id: '123', xp: 0 });
+  const users = await ctx.db.find('users', { guild_id: '123' });
+}
+```
+
+### Свой драйвер
+
+```ts
+database: {
+  type: 'custom',
+  create: async () => myDatabaseClient,
+}
+```
+
+## API модулей (SQL)
+
+Методы базы **асинхронные**. Используйте `?` в запросах — для PostgreSQL плейсхолдеры конвертируются автоматически.
+
+```ts
+export const module = {
+  meta: { id: 'stats', name: 'Stats', description: '...' },
+  async onLoad(ctx) {
+    const table = ctx.db.table('events');
+    await ctx.db.exec(`CREATE TABLE IF NOT EXISTS ${table} (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      guild_id TEXT NOT NULL,
+      count INTEGER NOT NULL DEFAULT 0
+    )`);
+  },
+};
 ```
 
 ## Модули

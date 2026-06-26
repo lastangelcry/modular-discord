@@ -1,13 +1,22 @@
 import type { Client, Collection, Interaction } from 'discord.js';
-import type { ModuleDatabase } from './Database.js';
+import type { ModuleDataStore } from './database/types.js';
 import type { ModuleListeners } from './ModuleListeners.js';
+import type { DatabaseConfig } from './database/types.js';
 
 export interface BotConfig {
   token: string;
   clientId: string;
-  databasePath: string;
   modulesPath: string;
-  /** Кэш распакованных .pak; по умолчанию data/.module-cache рядом с modules/ */
+  /** Database backend (recommended) */
+  database?: DatabaseConfig;
+  /**
+   * SQLite file path — shorthand for `{ type: 'sqlite', path }`.
+   * @deprecated Prefer `database`.
+   */
+  databasePath?: string;
+  /** Data directory for module cache and SQLite parent folder; default: cwd */
+  dataPath?: string;
+  /** Кэш распакованных .pak; по умолчанию data/.module-cache */
   moduleCachePath?: string;
 }
 
@@ -20,7 +29,7 @@ export interface ModuleMeta {
 
 export interface ModuleContext {
   client: Client;
-  db: ModuleDatabase;
+  db: ModuleDataStore;
   isEnabled: (guildId: string) => boolean;
   /** Слушатели Discord-событий с автопроверкой enabled и cleanup */
   listeners: ModuleListeners;

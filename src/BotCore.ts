@@ -2,7 +2,12 @@ import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { Client, Collection, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
 import { buildSlashCommand } from './commandBuilder.js';
-import { Database } from './Database.js';
+import {
+  createDatabase,
+  resolveDatabaseConfig,
+  resolveDataPath,
+} from './database/createDatabase.js';
+import type { DatabaseClient } from './database/types.js';
 import { discoverModules } from './ModuleLoader.js';
 import { ModuleListeners } from './ModuleListeners.js';
 import type { BotConfig, LoadedModule, Module, ModuleContext } from './types.js';
@@ -16,29 +21,25 @@ const DEFAULT_INTENTS = [
 
 export class BotCore {
   readonly client: Client;
-  readonly db: Database;
 
   private readonly config: BotConfig;
+  private database?: DatabaseClient;
   private readonly modules = new Collection<string, LoadedModule>();
   private contexts = new Collection<string, ModuleContext>();
+  private moduleSettings = new Map<string, Map<string, boolean>>();
 
   constructor(config: BotConfig, client?: Client) {
     this.config = config;
-    this.db = new Database({ path: config.databasePath });
     this.client = client ?? new Client({ intents: DEFAULT_INTENTS });
-    this.initCoreSchema();
     this.bindEvents();
   }
 
-  private initCoreSchema(): void {
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS guild_module_settings (
-        guild_id TEXT NOT NULL,
-        module_id TEXT NOT NULL,
-        enabled INTEGER NOT NULL DEFAULT 1,
-        PRIMARY KEY (guild_id, module_id)
-      );
-    `);
+  /** Database client (available after `start()`) */
+  get db(): DatabaseClient {
+    if (!this.database) {
+      throw new Error('BotCore is not started. Call start() before accessing db.');
+    }
+    return this.database;
   }
 
   private bindEvents(): void {
@@ -73,10 +74,23 @@ export class BotCore {
   }
 
   async start(): Promise<void> {
-    await mkdir(dirname(this.config.databasePath), { recursive: true });
+    const dbConfig = resolveDatabaseConfig(this.config);
+    const dataPath = resolveDataPath(this.config);
+
+    if (dbConfig.type === 'sqlite') {
+      await mkdir(dirname(dbConfig.path), { recursive: true });
+    } else {
+      await mkdir(dataPath, { recursive: true });
+    }
+
+    const database = await createDatabase(dbConfig);
+    this.database = database;
+
+    this.moduleSettings = await database.loadAllModuleSettings();
+    console.log(`[core] Database: ${dbConfig.type}`);
 
     const moduleCachePath =
-      this.config.moduleCachePath ?? join(dirname(this.config.databasePath), '.module-cache');
+      this.config.moduleCachePath ?? join(dataPath, '.module-cache');
     const discovered = await discoverModules(this.config.modulesPath, moduleCachePath);
 
     for (const loaded of discovered) {
@@ -105,7 +119,9 @@ export class BotCore {
       }
     }
     this.client.destroy();
-    this.db.close();
+    if (this.database) {
+      await this.database.close();
+    }
   }
 
   getModule(id: string): LoadedModule | undefined {
@@ -119,13 +135,10 @@ export class BotCore {
   isModuleEnabled(moduleId: string, guildId: string | null): boolean {
     if (!guildId) return false;
 
-    const row = this.db.get<{ enabled: number }>(
-      `SELECT enabled FROM guild_module_settings WHERE guild_id = ? AND module_id = ?`,
-      guildId,
-      moduleId
-    );
-
-    if (row !== undefined) return row.enabled === 1;
+    const guildSettings = this.moduleSettings.get(guildId);
+    if (guildSettings?.has(moduleId)) {
+      return guildSettings.get(moduleId)!;
+    }
 
     const mod = this.modules.get(moduleId);
     return mod?.meta.defaultEnabled !== false;
@@ -135,14 +148,14 @@ export class BotCore {
     const mod = this.modules.get(moduleId);
     if (!mod) throw new Error(`Module "${moduleId}" not found`);
 
-    this.db.run(
-      `INSERT INTO guild_module_settings (guild_id, module_id, enabled)
-       VALUES (?, ?, ?)
-       ON CONFLICT(guild_id, module_id) DO UPDATE SET enabled = excluded.enabled`,
-      guildId,
-      moduleId,
-      enabled ? 1 : 0
-    );
+    await this.db.setModuleEnabled(guildId, moduleId, enabled);
+
+    let guildSettings = this.moduleSettings.get(guildId);
+    if (!guildSettings) {
+      guildSettings = new Map();
+      this.moduleSettings.set(guildId, guildSettings);
+    }
+    guildSettings.set(moduleId, enabled);
 
     const ctx = this.contexts.get(moduleId);
     if (!ctx) return;
